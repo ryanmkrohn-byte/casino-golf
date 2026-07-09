@@ -660,17 +660,26 @@ export default function CasinoGolf() {
           </div>
         )}
 
+        {/* ── COURSE SEARCH — the main focus ── */}
         <div style={S.card}>
-          <div style={S.cardHead}>
-            <p style={{...S.sLabel,margin:0}}>COURSE</p>
-            <button style={S.searchCourseBtn} onClick={()=>{setCourseResults([]);setPickedCourse(null);setCourseTees([]);setCourseSearchErr("");setScreen("courseSearch");}}>
-              🔍 Search Course
+          <p style={S.sLabel}>FIND YOUR COURSE</p>
+          <div style={{display:"flex",gap:8}}>
+            <input style={{...S.input,flex:1}}
+              placeholder="Type course name…"
+              autoComplete="off" autoCorrect="off" autoCapitalize="words"
+              value={courseQuery}
+              onChange={e=>{setCourseQuery(e.target.value);setCourseSearchErr("");}}
+              onKeyDown={e=>{ if(e.key==="Enter" && courseQuery.trim()){ setCourseResults([]);setPickedCourse(null);setCourseTees([]);setCourseSearchErr("");setScreen("courseSearch");searchCourses(); } }}/>
+            <button
+              style={{...S.primaryBtn,marginTop:0,width:"auto",padding:"12px 18px",fontSize:14,whiteSpace:"nowrap",opacity:courseQuery.trim()?1:0.5}}
+              onClick={()=>{ if(!courseQuery.trim()) return; setCourseResults([]);setPickedCourse(null);setCourseTees([]);setCourseSearchErr("");setScreen("courseSearch");searchCourses(); }}>
+              🔍 Search
             </button>
           </div>
 
           {/* Loaded course badge */}
           {loadedCourse && (
-            <div style={S.loadedBadge}>
+            <div style={{...S.loadedBadge,marginTop:12,marginBottom:0}}>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:13,color:"#4ade80"}}>✅ {loadedCourse.name}</div>
                 <div style={{fontSize:11,color:"#6dbf7e",marginTop:2,fontFamily:"monospace"}}>
@@ -682,16 +691,7 @@ export default function CasinoGolf() {
             </div>
           )}
 
-          {/* Manual course name (only if no loaded course) */}
-          {!loadedCourse && (
-            <div style={S.row}>
-              <span style={S.fieldIcon}>⛳</span>
-              <input style={{...S.input,flex:1}} placeholder="Course name (optional)"
-                value={courseName} onChange={e=>setCourseName(e.target.value)}/>
-            </div>
-          )}
-
-          <div style={S.row}>
+          <div style={{...S.row,marginTop:12,marginBottom:0}}>
             <span style={S.fieldIcon}>🏌️</span>
             <span style={S.iLabel}>Holes</span>
             {[9,18].map(n=>(
@@ -700,48 +700,55 @@ export default function CasinoGolf() {
           </div>
         </div>
 
-
-        {/* Manual par entry — shown when no course loaded, or toggled manually */}
-        {(!loadedCourse || showManualPar) && (
-          <div style={S.card}>
-            <div style={S.cardHead}>
-              <p style={{...S.sLabel,margin:0}}>
-                PAR PER HOLE
-                <span style={{color:"#6dbf7e",fontWeight:400,marginLeft:8}}>
-                  {loadedCourse ? "(from course search)" : "(set manually)"}
-                </span>
+        {/* ── Manual par — collapsed behind a toggle ── */}
+        <div style={S.card}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div>
+              <p style={{...S.sLabel,margin:0}}>SET PAR MANUALLY</p>
+              <p style={{fontSize:11,color:"#6dbf7e",margin:"3px 0 0"}}>
+                {loadedCourse ? "Override the loaded scorecard" : "No course search needed"}
               </p>
-              <span style={S.gold}>{parPerHole.slice(0,holeCount).reduce((a,b)=>a+b,0)} total</span>
             </div>
-            {loadedCourse && (
-              <p style={{fontSize:11,color:"#6dbf7e",marginBottom:10}}>
-                Override individual holes if the scorecard has an error.
-              </p>
-            )}
-            <div style={S.parGrid}>
-              {Array.from({length:holeCount},(_,i)=>i).map(hi=>(
-                <div key={hi} style={S.parCell}>
-                  <span style={S.parNum}>{hi+1}</span>
-                  <div style={S.parBtnRow}>
-                    {[3,4,5].map(p=>(
-                      <button key={p}
-                        style={parPerHole[hi]===p ? S.parBtnOn : S.parBtnOff}
-                        onClick={()=>updatePar(hi,p)}>{p}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button
+              style={{...S.toggleTrack, backgroundColor: showManualPar ? "#ffd700" : "#1e4d2b"}}
+              onClick={()=>setShowManualPar(v=>!v)}
+              aria-label="Toggle manual par entry">
+              <span style={{...S.toggleKnob, transform: showManualPar ? "translateX(22px)" : "translateX(0)"}}/>
+            </button>
           </div>
-        )}
-        {loadedCourse && !showManualPar && (
-          <button
-            style={{...S.discardBtn,margin:"8px 14px 0",display:"block",textAlign:"center",width:"calc(100% - 28px)",padding:"10px"}}
-            onClick={()=>setShowManualPar(true)}>
-            ✏️ Override par per hole
-          </button>
-        )}
+
+          {showManualPar && (
+            <div style={{marginTop:14}}>
+              {!loadedCourse && (
+                <div style={S.row}>
+                  <span style={S.fieldIcon}>⛳</span>
+                  <input style={{...S.input,flex:1}} placeholder="Course name (optional)"
+                    autoComplete="off" autoCorrect="off" autoCapitalize="words"
+                    value={courseName} onChange={e=>setCourseName(e.target.value)}/>
+                </div>
+              )}
+              <div style={{...S.cardHead,marginTop:4}}>
+                <span style={{fontSize:11,color:"#6dbf7e"}}>Tap par for each hole</span>
+                <span style={S.gold}>{parPerHole.slice(0,holeCount).reduce((a,b)=>a+b,0)} total</span>
+              </div>
+              <div style={S.parGrid}>
+                {Array.from({length:holeCount},(_,i)=>i).map(hi=>(
+                  <div key={hi} style={S.parCell}>
+                    <span style={S.parNum}>{hi+1}</span>
+                    <div style={S.parBtnRow}>
+                      {[3,4,5].map(p=>(
+                        <button key={p}
+                          style={parPerHole[hi]===p ? S.parBtnOn : S.parBtnOff}
+                          onClick={()=>updatePar(hi,p)}>{p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div style={S.card}>
           <div style={S.cardHead}>
@@ -1400,6 +1407,8 @@ const S = {
   previewLine: { fontSize:12,fontFamily:"monospace",marginBottom:3 },
   pickGrid: { display:"flex",flexDirection:"column",gap:10,marginTop:4 },
   pickBtn: { display:"flex",alignItems:"center",gap:12,padding:"14px 16px",backgroundColor:"#0a1a0f",border:"2px solid #ffd700",color:"#e8f5e9",borderRadius:10,cursor:"pointer" },
+  toggleTrack: { position:"relative",width:52,height:30,borderRadius:15,border:"none",cursor:"pointer",transition:"background 0.2s",flexShrink:0,padding:0 },
+  toggleKnob:  { position:"absolute",top:3,left:4,width:24,height:24,borderRadius:"50%",backgroundColor:"#0a1a0f",transition:"transform 0.2s",display:"block" },
   parGrid:   { display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8 },
   parCell:   { backgroundColor:"#0a1a0f",border:"1px solid #1e4d2b",borderRadius:8,padding:"8px 6px",textAlign:"center" },
   parNum:    { display:"block",fontSize:11,color:"#6dbf7e",marginBottom:5,fontFamily:"monospace" },
