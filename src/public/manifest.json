@@ -1,0 +1,16 @@
+{
+  "name": "Casino Golf",
+  "short_name": "Casino Golf",
+  "description": "Golf betting game — Casino format with dealer rotation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1a0f",
+  "theme_color": "#0a1a0f",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
